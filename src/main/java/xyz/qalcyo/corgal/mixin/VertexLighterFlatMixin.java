@@ -30,11 +30,7 @@ public class VertexLighterFlatMixin {
             boolean isClay = blockInfo.getBlock().getMaterial() == Material.rock;
             if (!isClay || check(mapColor.colorIndex)) {
                 args.set(5, 1.0F);
-                int color = mapColor.colorValue;
-                args.set(6, ((0xFF) << 24) |
-                        ((Math.round(Math.max((float) ColorUtils.getRed(color) * CorgalConfig.overlayAmount, 0.0F)) & 0xFF) << 16) |
-                        ((Math.round(Math.max((float) ColorUtils.getGreen(color) * CorgalConfig.overlayAmount, 0.0F)) & 0xFF) << 8) |
-                        ((Math.round(Math.max((float) ColorUtils.getBlue(color) * CorgalConfig.overlayAmount, 0.0F)) & 0xFF)));
+                args.set(6, ColorUtils.getCachedDarkColor(mapColor));
             }
         }
     }
