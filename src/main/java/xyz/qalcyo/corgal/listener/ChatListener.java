@@ -9,10 +9,14 @@ import xyz.qalcyo.corgal.config.CorgalConfig;
 import xyz.qalcyo.corgal.utils.HypixelUtils;
 import xyz.qalcyo.mango.Multithreading;
 import xyz.qalcyo.requisite.Requisite;
+import xyz.qalcyo.requisite.core.integration.hypixel.locraw.HypixelLocraw;
 
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * The listener for chat messages.
+ */
 public class ChatListener {
 
     private final int apiKeyMessageLength = "Your new API key is ".length();
@@ -95,7 +99,7 @@ public class ChatListener {
                                             }
                                         }
                                     }
-                                    if (CorgalConfig.autoGetWinstreak) {
+                                    if (isSupportedMode(HypixelUtils.locraw) && CorgalConfig.autoGetWinstreak) {
                                         if (HypixelUtils.getWinstreak()) {
                                             Requisite.getInstance().getNotifications().push(
                                                     Corgal.NAME,
@@ -114,5 +118,17 @@ public class ChatListener {
                 }
             }
         }
+    }
+
+    private boolean isSupportedMode(HypixelLocraw locraw) {
+        if (locraw != null && locraw.getGameType() != null) {
+            switch (locraw.getGameType()) {
+                case BEDWARS:
+                case SKYWARS:
+                case DUELS:
+                    return true;
+            }
+        }
+        return false;
     }
 }

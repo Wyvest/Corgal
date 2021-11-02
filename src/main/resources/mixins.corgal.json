@@ -1,0 +1,11 @@
+{
+  "compatibilityLevel": "JAVA_8",
+  "minVersion": "0.7",
+  "package": "xyz.qalcyo.corgal.mixin",
+  "refmap": "mixins.corgal.refmap.json",
+  "mixins": [
+    "BlockModelRendererMixin",
+    "VertexLighterFlatMixin"
+  ],
+  "verbose": true
+}

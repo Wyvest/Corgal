@@ -1,5 +1,7 @@
 package xyz.qalcyo.corgal.utils;
 
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -11,21 +13,67 @@ import net.minecraft.util.StringUtils;
 import xyz.qalcyo.corgal.Corgal;
 import xyz.qalcyo.corgal.config.CorgalConfig;
 import xyz.qalcyo.eventbus.SubscribeEvent;
+import xyz.qalcyo.mango.Multithreading;
 import xyz.qalcyo.requisite.Requisite;
 import xyz.qalcyo.requisite.core.integration.hypixel.events.LocrawReceivedEvent;
 import xyz.qalcyo.requisite.core.integration.hypixel.locraw.HypixelLocraw;
 
+import java.io.File;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Locale;
-import java.util.Map;
-import java.util.TimeZone;
+import java.util.*;
+import java.util.concurrent.Future;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class HypixelUtils {
+    private static final File limitFile = new File(Corgal.modDir, "limits.json");
+    private static final AtomicInteger counter = new AtomicInteger(0);
+    private static final Cache<String, Integer> limitCache = Caffeine.newBuilder().executor(new ThreadPoolExecutor(50, 50,
+            0L, TimeUnit.SECONDS,
+            new LinkedBlockingQueue<>(),
+            r -> new Thread(r, String.format("Corgal Cache Thread %s", counter.incrementAndGet())))).maximumSize(5000).build();
     public static String gexp;
     public static String winstreak;
-    private static HypixelLocraw locraw;
+    public static HypixelLocraw locraw;
+    private static Future downloadTask = null;
+    private static JsonObject limitJson = null;
 
+    public static int getHeight() {
+        if (locraw == null || downloadTask == null || !downloadTask.isDone() || !limitFile.exists() || limitJson == null || isLobby())
+            return -1;
+        try {
+            switch (locraw.getGameType()) {
+                case BEDWARS:
+                    if (locraw.getMapName() != null && !StringsKt.isBlank(locraw.getMapName())) {
+                        String map = locraw.getMapName().toLowerCase(Locale.ENGLISH).replace(" ", "_");
+                        Integer cached = limitCache.getIfPresent(map);
+                        if (cached == null) {
+                            limitCache.put(map, (limitJson.getAsJsonObject("bedwars").get(map).getAsInt()));
+                            return Objects.requireNonNull(limitCache.getIfPresent(map));
+                        } else {
+                            return cached;
+                        }
+                    } else {
+                        return -1;
+                    }
+                case DUELS:
+                    if (locraw.getGameMode().toLowerCase(Locale.ENGLISH).contains("bridge")) {
+                        return 100;
+                    }
+                default:
+                    return -1;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return -1;
+        }
+    }
+
+    /**
+     * @return Whether the player is in Hypixel Skyblock.
+     */
     public static boolean isSkyblock() {
         if (Requisite.getInstance().getHypixelHelper().isOnHypixel()) {
             ScoreObjective scoreboardObj = Minecraft.getMinecraft().theWorld.getScoreboard().getObjectiveInDisplaySlot(1);
@@ -37,10 +85,13 @@ public class HypixelUtils {
         return false;
     }
 
+    /**
+     * @return Whether the player is in a Hypixel lobby.
+     */
     public static boolean isLobby() {
         if (Requisite.getInstance().getHypixelHelper().isOnHypixel()) {
             if (locraw != null) {
-                return locraw.getGameMode() == null || !StringsKt.isBlank(locraw.getGameMode()) || locraw.getGameType() == null;
+                return locraw.getGameMode() == null || StringsKt.isBlank(locraw.getGameMode()) || locraw.getGameType() == null;
             }
         }
         return false;
@@ -52,6 +103,11 @@ public class HypixelUtils {
         return simpleDateFormat.format(new Date(System.currentTimeMillis()));
     }
 
+    /**
+     * Gets the player's GEXP and stores it in a variable.
+     *
+     * @return Whether the "getting" was successful.
+     */
     public static boolean getGEXP() {
         String gexp = null;
         String uuid = Minecraft.getMinecraft().thePlayer.getGameProfile().getId().toString().replace("-", "");
@@ -67,6 +123,12 @@ public class HypixelUtils {
         return true;
     }
 
+    /**
+     * Gets the specified player's GEXP and stores it in a variable.
+     *
+     * @param username The username of the player.
+     * @return Whether the "getting" was successful.
+     */
     public static boolean getGEXP(String username) {
         String gexp = null;
         String uuid = getUUID(username);
@@ -82,6 +144,11 @@ public class HypixelUtils {
         return true;
     }
 
+    /**
+     * Gets the player's weekly GEXP and stores it in a variable.
+     *
+     * @return Whether the "getting" was successful.
+     */
     public static boolean getWeeklyGEXP() {
         String gexp = null;
         String uuid = Minecraft.getMinecraft().thePlayer.getGameProfile().getId().toString().replace("-", "");
@@ -101,6 +168,12 @@ public class HypixelUtils {
         return true;
     }
 
+    /**
+     * Gets the player's weekly GEXP and stores it in a variable.
+     *
+     * @param username The username of the player.
+     * @return Whether the "getting" was successful.
+     */
     public static boolean getWeeklyGEXP(String username) {
         String gexp = null;
         String uuid = getUUID(username);
@@ -120,6 +193,11 @@ public class HypixelUtils {
         return true;
     }
 
+    /**
+     * Gets the player's current winstreak and stores it in a variable.
+     *
+     * @return Whether the "getting" was successful.
+     */
     public static boolean getWinstreak() {
         String uuid = Minecraft.getMinecraft().thePlayer.getGameProfile().getId().toString().replace("-", "");
         JsonObject playerStats =
@@ -150,12 +228,19 @@ public class HypixelUtils {
                         return false;
                     }
                 }
-                default: return false;
+                default:
+                    return false;
             }
         }
         return true;
     }
 
+    /**
+     * Gets the specified player's current winstreak and stores it in a variable.
+     *
+     * @param username The username of the player.
+     * @return Whether the "getting" was successful.
+     */
     public static boolean getWinstreak(String username) {
         String uuid = getUUID(username);
         JsonObject playerStats =
@@ -186,12 +271,20 @@ public class HypixelUtils {
                         return false;
                     }
                 }
-                default: return false;
+                default:
+                    return false;
             }
         }
         return true;
     }
 
+    /**
+     * Gets the player's current winstreak and stores it in a variable.
+     *
+     * @param username The username of the player.
+     * @param game     The game to get the stats.
+     * @return Whether the "getting" was successful.
+     */
     public static boolean getWinstreak(String username, String game) {
         String uuid = getUUID(username);
         JsonObject playerStats =
@@ -222,12 +315,18 @@ public class HypixelUtils {
                         return false;
                     }
                 }
-                default: return false;
+                default:
+                    return false;
             }
         }
         return true;
     }
 
+    /**
+     * Gets a UUID based on the username provided.
+     *
+     * @param username The username of the player to get.
+     */
     public static String getUUID(String username) {
         JsonObject uuidResponse =
                 APIUtil.getJSONResponse("https://api.mojang.com/users/profiles/minecraft/" + username);
@@ -256,5 +355,15 @@ public class HypixelUtils {
     @SubscribeEvent
     public void onLocraw(LocrawReceivedEvent event) {
         locraw = event.locraw;
+        if (downloadTask == null) {
+            downloadTask = Multithreading.submit(() -> {
+                if (APIUtil.download("https://api.pinkulu.com/HeightLimitMod/Limits", limitFile)) {
+                    limitJson = Objects.requireNonNull(JsonUtils.read("limits.json", limitFile.getParentFile())).getAsJsonObject();
+                } else {
+                    System.out.println("Downloading has failed, trying again on next locraw sent.");
+                    downloadTask = null;
+                }
+            });
+        }
     }
 }

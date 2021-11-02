@@ -15,6 +15,8 @@ import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.EntityUtils;
 import xyz.qalcyo.corgal.Corgal;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.net.URI;
 import java.util.Scanner;
 
@@ -24,14 +26,18 @@ import java.util.Scanner;
  */
 public class APIUtil {
 
-    private static final JsonParser parser = new JsonParser();
-
     public static final HttpClientBuilder builder = HttpClients.custom().setUserAgent(Corgal.ID + "/" + Corgal.VER)
             .addInterceptorFirst(((HttpRequest request, HttpContext context) -> {
                 if (!request.containsHeader("Pragma")) request.addHeader("Pragma", "no-cache");
                 if (!request.containsHeader("Cache-Control")) request.addHeader("Cache-Control", "no-cache");
             }));
+    private static final JsonParser parser = new JsonParser();
 
+    /**
+     * Gets a JsonObject from online.
+     *
+     * @param url The URL to get the JsonObject.
+     */
     public static JsonObject getJSONResponse(String url) {
         try (CloseableHttpClient client = builder.build()) {
             HttpGet request = new HttpGet(URI.create(url));
@@ -57,5 +63,22 @@ public class APIUtil {
 
         }
         return new JsonObject();
+    }
+
+    public static boolean download(String url, File file) {
+        url = url.replace(" ", "%20");
+        try (FileOutputStream fileOut = new FileOutputStream(file)) {
+            HttpResponse downloadResponse = builder.build().execute(new HttpGet(url));
+            byte[] buffer = new byte[1024];
+
+            int read;
+            while ((read = downloadResponse.getEntity().getContent().read(buffer)) > 0) {
+                fileOut.write(buffer, 0, read);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+        return true;
     }
 }

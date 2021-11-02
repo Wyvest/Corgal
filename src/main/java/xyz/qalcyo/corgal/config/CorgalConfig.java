@@ -3,6 +3,7 @@ package xyz.qalcyo.corgal.config;
 import gg.essential.vigilance.Vigilant;
 import gg.essential.vigilance.data.Property;
 import gg.essential.vigilance.data.PropertyType;
+import net.minecraft.client.Minecraft;
 import xyz.qalcyo.corgal.Corgal;
 
 import java.io.File;
@@ -32,7 +33,7 @@ public class CorgalConfig extends Vigilant {
             description = "Automatically check your GEXP after you win a Hypixel game. \\u00a7cRequires an API Key.",
             category = "Automatic"
     )
-    public static boolean autoGetGEXP = true;
+    public static boolean autoGetGEXP = false;
 
     @Property(
             type = PropertyType.SELECTOR,
@@ -51,9 +52,29 @@ public class CorgalConfig extends Vigilant {
     )
     public static boolean autoGetWinstreak = false;
 
+    @Property(
+            type = PropertyType.SWITCH,
+            name = "Height Overlay",
+            description = "Make blocks that are in the Hypixel height limit a different colour.\nReloads chunks automatically when toggled on and off.",
+            category = "Overlay"
+    )
+    public static boolean heightOverlay = false;
+
+    @Property(
+            type = PropertyType.DECIMAL_SLIDER,
+            name = "Overlay Tint Multiplier",
+            description = "Adjust the tint multiplier.",
+            category = "Overlay",
+            maxF = 1.0F
+    )
+    public static float overlayAmount = 0.7F;
+
     public static CorgalConfig instance = new CorgalConfig();
+
     public CorgalConfig() {
         super(new File(Corgal.modDir, "corgal.toml"), Corgal.NAME);
         initialize();
+        registerListener("heightOverlay", (funny) -> Minecraft.getMinecraft().renderGlobal.loadRenderers());
+        registerListener("overlayAmount", (funny) -> Minecraft.getMinecraft().renderGlobal.loadRenderers());
     }
 }

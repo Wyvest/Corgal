@@ -2,6 +2,7 @@ plugins {
     id "net.minecraftforge.gradle.forge" version "ddb1eb0"
     id "com.github.johnrengelman.shadow" version "6.1.0"
     id "java"
+    id "org.spongepowered.mixin" version "d5f9873"
 }
 
 version = mod_version
@@ -23,6 +24,7 @@ minecraft {
     makeObfSourceJar = false
 
     clientRunArgs += '--tweakClass xyz.qalcyo.requisite.installer.RequisiteInstaller'
+    clientRunArgs += "--mixin mixins.${mod_id}.json"
 }
 
 configurations {
@@ -63,13 +65,10 @@ dependencies {
     /* If you'd rather like your dependency to be inside your built JAR file, use: */
     /* shade('com.example.package:example:1.0.0') */
 
-    implementation('xyz.qalcyo.requisite:Requisite-1.8.9:2.0-beta5')
-    shade('xyz.qalcyo.requisite:RequisiteInstaller-1.8.9:1.3.1')
-    shade('com.electronwill.night-config:toml:3.6.0')
-    shade('gg.essential:vigilance-1.8.9-forge:183') {
-        transitive = false
-    }
-    implementation("gg.essential:elementa-1.8.9-forge:380")
+    implementation('xyz.qalcyo.requisite:Requisite-1.8.9:2.0-beta6')
+    shade('xyz.qalcyo.requisite:RequisiteInstaller-1.8.9:1.3.4')
+    shade('gg.essential:vigilance-1.8.9-forge:183')
+    implementation annotationProcessor ("org.spongepowered:mixin:0.7.11-SNAPSHOT")
 }
 
 processResources {
@@ -99,8 +98,10 @@ jar {
 
     manifest.attributes(
             'ModSide': 'CLIENT',
-            'ForceLoadAsMod': true,
-            'TweakClass': 'xyz.qalcyo.requisite.installer.RequisiteInstaller',
+            "ForceLoadAsMod": true,
+            "MixinConfigs": "mixins.${mod_id}.json",
+            "FMLCorePluginContainsFMLMod" : true,
+            'TweakClass': 'xyz.qalcyo.requisite.installer.RequisiteInstaller'
     )
 }
 
@@ -140,9 +141,21 @@ shadowJar {
     exclude 'fabric.mod.json'
 }
 
+mixin {
+    disableRefMapWarning = true
+    defaultObfuscationEnv searge
+    add sourceSets.main, "mixins.${mod_id}.refmap.json"
+}
+
 reobf {
     shadowJar {
         classpath = sourceSets.main.compileClasspath
+    }
+}
+
+sourceSets {
+    main {
+        ext.refMap = "mixins.${mod_id}.refmap.json"
     }
 }
 
