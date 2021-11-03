@@ -38,7 +38,9 @@ public class ChatListener {
             "Winning Team -",
             "1st - ",
             " Duel - ",
-            "YOU LOSE!"
+            "YOU LOSE!",
+            "Most Kills - ",
+            "Hearts Regenerated:"
     );
     private boolean victoryDetected = false;
 

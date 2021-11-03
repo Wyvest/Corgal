@@ -46,10 +46,8 @@ public class BlockModelRendererMixin {
 
     @ModifyArgs(method = "renderQuadsSmooth", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/WorldRenderer;putColorMultiplier(FFFI)V", remap = true), remap = false)
     private void modifyArgs(Args args) {
-        System.out.println(shouldModifyColor);
         if (shouldModifyColor && mapColor != null && (!isClay || check(mapColor.colorIndex))) {
             int color = ColorUtils.getCachedDarkColor(mapColor);
-            System.out.println(color);
             args.set(0, (float) ColorUtils.getRed(color) / 255);
             args.set(1, (float) ColorUtils.getGreen(color) / 255);
             args.set(2, (float) ColorUtils.getBlue(color) / 255);
@@ -58,10 +56,8 @@ public class BlockModelRendererMixin {
 
     @ModifyArgs(method = "renderQuadsSmooth", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/WorldRenderer;putColorMultiplierRgba(FFFFI)V", remap = false), remap = false)
     private void modifyArg4s(Args args) {
-        System.out.println(shouldModifyColor);
         if (shouldModifyColor && mapColor != null && (!isClay || check(mapColor.colorIndex))) {
             int color = ColorUtils.getCachedDarkColor(mapColor);
-            System.out.println(color);
             args.set(0, (float) ColorUtils.getRed(color) / 255);
             args.set(1, (float) ColorUtils.getGreen(color) / 255);
             args.set(2, (float) ColorUtils.getBlue(color) / 255);
@@ -84,10 +80,8 @@ public class BlockModelRendererMixin {
 
     @ModifyArgs(method = "renderQuadsFlat", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/WorldRenderer;putColorMultiplier(FFFI)V", remap = true), remap = false)
     private void modifyArg2s(Args args) {
-        System.out.println(shouldModifyColor);
         if (shouldModifyColor && mapColor != null && (!isClay || check(mapColor.colorIndex))) {
             int color = ColorUtils.getCachedDarkColor(mapColor);
-            System.out.println(color);
             args.set(0, (float) ColorUtils.getRed(color) / 255);
             args.set(1, (float) ColorUtils.getGreen(color) / 255);
             args.set(2, (float) ColorUtils.getBlue(color) / 255);
