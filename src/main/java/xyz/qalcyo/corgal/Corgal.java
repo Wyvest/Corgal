@@ -23,7 +23,7 @@ public class Corgal {
             VER = "@VER@",
             ID = "@ID@";
 
-    public static File modDir = new File(new File(new File(Minecraft.getMinecraft().mcDataDir, "config"), "Qalcyo"), NAME);
+    public static File modDir = new File(new File(Minecraft.getMinecraft().mcDataDir, "Qalcyo"), NAME);
 
     /**
      * Sends a client-side only message to the player with the mod's name as a prefix.
