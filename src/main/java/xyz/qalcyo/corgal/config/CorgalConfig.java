@@ -69,6 +69,39 @@ public class CorgalConfig extends Vigilant {
     )
     public static float overlayAmount = 0.7F;
 
+    @Property(
+            type = PropertyType.SWITCH,
+            name = "Notify When Blocks Run Out",
+            description = "Pings you via a sound when your blocks are running out.",
+            category = "Blocks"
+    )
+    public static boolean blockNotify = false;
+
+    @Property(
+            type = PropertyType.NUMBER,
+            name = "Block Number",
+            description = "Modify the number of blocks you (don't?) have for the Notify When Blocks Run Out feature to work.",
+            category = "Blocks"
+    )
+    public static int blockNumber = 10;
+
+    @Property(
+            type = PropertyType.SELECTOR,
+            name = "Sound",
+            description = "Choose what sound to play.",
+            category = "Blocks",
+            options = {"Hypixel Ding", "Golem Hit", "Blaze Hit", "Anvil Land", "Horse Death", "Ghast Scream", "Guardian Floop", "Cat Meow", "Dog Bark"}
+    )
+    public static int blockNotifySound = 0;
+
+    @Property(
+            type = PropertyType.SWITCH,
+            name = "Spam Sound",
+            description = "Spam the sound (this will make it VERY loud)",
+            category = "Blocks"
+    )
+    public static boolean spamBlockNotify = false;
+
     public static CorgalConfig instance = new CorgalConfig();
 
     public CorgalConfig() {
