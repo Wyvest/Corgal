@@ -154,7 +154,9 @@ reobf {
 }
 
 sourceSets {
+    dummy
     main {
+        compileClasspath += dummy.output
         ext.refMap = "mixins.${mod_id}.refmap.json"
     }
 }

@@ -74,7 +74,17 @@ public class CorgalConfig extends Vigilant {
     public CorgalConfig() {
         super(new File(Corgal.modDir, "corgal.toml"), Corgal.NAME);
         initialize();
-        registerListener("heightOverlay", (funny) -> Minecraft.getMinecraft().renderGlobal.loadRenderers());
-        registerListener("overlayAmount", (funny) -> Minecraft.getMinecraft().renderGlobal.loadRenderers());
+        registerListener("heightOverlay", (funny) -> {
+            if (funny != null) {
+                heightOverlay = (boolean) funny;
+                Minecraft.getMinecraft().renderGlobal.loadRenderers();
+            }
+        });
+        registerListener("overlayAmount", (funny) -> {
+            if (funny != null) {
+                overlayAmount = (float) funny;
+                Minecraft.getMinecraft().renderGlobal.loadRenderers();
+            }
+        });
     }
 }
