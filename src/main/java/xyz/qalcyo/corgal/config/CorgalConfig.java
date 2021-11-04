@@ -102,6 +102,14 @@ public class CorgalConfig extends Vigilant {
     )
     public static boolean spamBlockNotify = false;
 
+    @Property(
+            type = PropertyType.SWITCH,
+            name = "Hide Duels Cosmetics",
+            description = "Hide Duels Cosmetics in Hypixel.",
+            category = "Cosmetics"
+    )
+    public static boolean hideDuelsCosmetics = false;
+
     public static CorgalConfig instance = new CorgalConfig();
 
     public CorgalConfig() {

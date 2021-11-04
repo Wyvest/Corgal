@@ -5,7 +5,8 @@
   "refmap": "mixins.corgal.refmap.json",
   "mixins": [
     "BlockModelRendererMixin",
-    "VertexLighterFlatMixin"
+    "VertexLighterFlatMixin",
+    "RenderItemMixin"
   ],
   "verbose": true
 }
