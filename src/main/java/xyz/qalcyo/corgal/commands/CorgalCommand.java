@@ -140,6 +140,10 @@ public class CorgalCommand extends CommandBase {
                     });
                     return;
                 }
+                case "forcecalculate": {
+                    HypixelUtils.getHeight();
+                    return;
+                }
                 default: {
                     Corgal.sendMessage("Invalid command usage.");
                 }

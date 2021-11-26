@@ -17,7 +17,7 @@ public class RenderItemMixin {
     @Inject(method = "renderItem(Lnet/minecraft/item/ItemStack;Lnet/minecraft/client/resources/model/IBakedModel;)V", at = @At("HEAD"), cancellable = true)
     private void yeah(ItemStack stack, IBakedModel model, CallbackInfo ci) {
         if (stack == null) return;
-        if (CorgalConfig.hideDuelsCosmetics && HypixelUtils.locraw != null && HypixelUtils.locraw.getGameType() == HypixelLocraw.GameType.DUELS && (stack.getItem() instanceof ItemDoublePlant || stack.getItem() instanceof ItemDye || stack.getItem() instanceof ItemRecord || shouldRemove(stack.getItem().getUnlocalizedName()) ||(stack.getItem() instanceof ItemBlock && (shouldRemove(((ItemBlock) stack.getItem()).block.getUnlocalizedName()) || ((ItemBlock) stack.getItem()).block instanceof BlockPumpkin)))) ci.cancel();
+        if (CorgalConfig.hideDuelsCosmetics && HypixelUtils.locraw != null && HypixelUtils.locraw.getGameType() == HypixelLocraw.GameType.DUELS && !HypixelUtils.isLobby() && (stack.getItem() instanceof ItemDoublePlant || stack.getItem() instanceof ItemDye || stack.getItem() instanceof ItemRecord || shouldRemove(stack.getItem().getUnlocalizedName()) ||(stack.getItem() instanceof ItemBlock && (shouldRemove(((ItemBlock) stack.getItem()).block.getUnlocalizedName()) || ((ItemBlock) stack.getItem()).block instanceof BlockPumpkin)))) ci.cancel();
     }
 
     private boolean shouldRemove(String blockName) {

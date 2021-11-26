@@ -1,8 +1,10 @@
 package xyz.qalcyo.corgal.listener;
 
 import gg.essential.universal.wrappers.message.UTextComponent;
+import net.minecraft.client.Minecraft;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
+import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import xyz.qalcyo.corgal.Corgal;
 import xyz.qalcyo.corgal.config.CorgalConfig;
@@ -43,16 +45,19 @@ public class ChatListener {
             "Hearts Regenerated:"
     );
     private boolean victoryDetected = false;
+    private boolean glDetected = false;
+    private static final String[] cancelGlMessages = {"glhf", "Good Luck", "GL", "Have a good game!", "gl", "Good luck!", "AutoGL By Sk1er"};
+    private static final String[] glmessages = {"glhf", "Good Luck", "GL", "Have a good game!", "gl", "Good luck!"};
 
     @SubscribeEvent
     public void onChatMessage(ClientChatReceivedEvent event) {
-        if (event.type == 2) return;
-        if (Requisite.getInstance().getHypixelHelper().isOnHypixel()) {
-            String unformattedText = UTextComponent.Companion.stripFormatting(event.message.getUnformattedText());
+        if (event.type == 2) return; // cancels action bar messages from appearing
+        if (Requisite.getInstance().getHypixelHelper().isOnHypixel()) { // checks whether the player is on hypixel
+            String unformattedText = UTextComponent.Companion.stripFormatting(event.message.getUnformattedText()); // gets the message without useless codes
             if (CorgalConfig.autoGetAPI) {
-                if (unformattedText.startsWith("Your new API key is ")) {
+                if (unformattedText.startsWith("Your new API key is ")) { // if the message starts with this, then get the API key from the message
                     String tempApiKey = unformattedText.substring(apiKeyMessageLength);
-                    Multithreading.runAsync(() -> {
+                    Multithreading.runAsync(() -> { //run this async as getting from the API normally would freeze minecraft
                         if (!Requisite.getInstance().getHypixelHelper().getApi().isValidKey(tempApiKey)
                         ) {
                             if (!Requisite.getInstance().getHypixelHelper().isOnHypixel()) {
@@ -61,6 +66,7 @@ public class ChatListener {
                                 Corgal.sendMessage(EnumChatFormatting.RED + "The API Key was invalid! Please try running the command again.");
                             }
                         } else {
+                            // if the api key is valid add the key to the configuration and save it
                             CorgalConfig.apiKey = tempApiKey;
                             CorgalConfig.instance.markDirty();
                             CorgalConfig.instance.writeData();
@@ -69,11 +75,26 @@ public class ChatListener {
                     });
                 }
             }
+            if (CorgalConfig.antiGL) {
+                for (String glMessage : cancelGlMessages) {
+                    if (unformattedText.contains(glMessage)) {
+                        event.setCanceled(true);
+                        return;
+                    }
+                }
+            }
+            if (CorgalConfig.autoGL && !glDetected) {
+                if (unformattedText.startsWith("The game starts in 5 seconds!")) {
+                    glDetected = true;
+                    Minecraft.getMinecraft().thePlayer.sendChatMessage("/ac " + getGLMessage());
+                    return;
+                }
+            }
             if (CorgalConfig.autoGetGEXP || CorgalConfig.autoGetWinstreak) {
-                if (!victoryDetected) {
-                    Multithreading.runAsync(() -> {
+                if (!victoryDetected) { // prevent victories being detected twice
+                    Multithreading.runAsync(() -> { //run this async as getting from the API normally would freeze minecraft
                         if (unformattedText.startsWith(" ")) {
-                            for (String triggers : gameEndList) {
+                            for (String triggers : gameEndList) { // go through all the triggers, if the message contains one of them then start
                                 if (unformattedText.contains(triggers)) {
                                     victoryDetected = true;
                                     if (CorgalConfig.autoGetGEXP) {
@@ -120,6 +141,16 @@ public class ChatListener {
                 }
             }
         }
+    }
+
+    @SubscribeEvent
+    public void onWorldLeave(WorldEvent.Unload event) {
+        victoryDetected = false;
+        glDetected = false;
+    }
+
+    private static String getGLMessage() {
+        return glmessages[CorgalConfig.glPhrase];
     }
 
     private boolean isSupportedMode(HypixelLocraw locraw) {

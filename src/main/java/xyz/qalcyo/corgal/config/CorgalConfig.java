@@ -110,6 +110,31 @@ public class CorgalConfig extends Vigilant {
     )
     public static boolean hideDuelsCosmetics = false;
 
+    @Property(
+            type = PropertyType.SWITCH,
+            name = "Auto GL",
+            category = "AutoGL",
+            description = "Send a message 5 seconds before a Hypixel game starts."
+    )
+    public static boolean autoGL = false;
+
+    @Property(
+            type = PropertyType.SELECTOR,
+            name = "Auto GL Phrase",
+            category = "AutoGL",
+            description = "Choose what message is said.",
+            options = {"glhf", "Good Luck", "GL", "Have a good game!", "gl", "Good luck!"}
+    )
+    public static int glPhrase = 0;
+
+    @Property(
+            type = PropertyType.SWITCH,
+            name = "Anti-GL",
+            category = "AutoGL",
+            description = "Remove all GL messages in chat."
+    )
+    public static boolean antiGL = false;
+
     public static CorgalConfig instance = new CorgalConfig();
 
     public CorgalConfig() {

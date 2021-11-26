@@ -39,35 +39,46 @@ public class HypixelUtils {
     public static HypixelLocraw locraw;
     private static Future downloadTask = null;
     private static JsonObject limitJson = null;
+    public static int height = -1;
 
-    public static int getHeight() {
-        if (locraw == null || downloadTask == null || !downloadTask.isDone() || !limitFile.exists() || limitJson == null || isLobby())
-            return -1;
+    public static void getHeight() {
+        if (locraw == null || downloadTask == null || !downloadTask.isDone() || !limitFile.exists() || limitJson == null || isLobby()) {
+            height = -1;
+            return;
+        }
         try {
-            switch (locraw.getGameType()) {
+            switch (Objects.requireNonNull(locraw).getGameType()) {
                 case BEDWARS:
                     if (locraw.getMapName() != null && !StringsKt.isBlank(locraw.getMapName())) {
                         String map = locraw.getMapName().toLowerCase(Locale.ENGLISH).replace(" ", "_");
                         Integer cached = limitCache.getIfPresent(map);
                         if (cached == null) {
                             limitCache.put(map, (limitJson.getAsJsonObject("bedwars").get(map).getAsInt()));
-                            return Objects.requireNonNull(limitCache.getIfPresent(map));
+                            Integer funny = limitCache.getIfPresent(map);
+                            if (funny == null) {
+                                height = -1;
+                                return;
+                            } else {
+                                height = funny;
+                            }
                         } else {
-                            return cached;
+                            height = cached;
                         }
                     } else {
-                        return -1;
+                        height = -1;
                     }
+                    return;
                 case DUELS:
-                    if (locraw.getGameMode().toLowerCase(Locale.ENGLISH).contains("bridge")) {
-                        return 100;
+                    if (locraw.getGameMode().toLowerCase(Locale.ENGLISH).contains("bridge") || locraw.getGameMode().toLowerCase(Locale.ENGLISH).contains("ctf")) {
+                        height = 100;
+                        return;
                     }
                 default:
-                    return -1;
+                    height = -1;
             }
         } catch (Exception e) {
             e.printStackTrace();
-            return -1;
+            height = -1;
         }
     }
 
@@ -364,6 +375,8 @@ public class HypixelUtils {
                     downloadTask = null;
                 }
             });
+            return;
         }
+        getHeight();
     }
 }
