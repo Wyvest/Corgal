@@ -11,6 +11,7 @@ import xyz.qalcyo.corgal.config.CorgalConfig;
 import xyz.qalcyo.corgal.listener.ChatListener;
 import xyz.qalcyo.corgal.listener.SoundListener;
 import xyz.qalcyo.corgal.utils.HypixelUtils;
+import xyz.qalcyo.corgal.utils.PatternHandler;
 import xyz.qalcyo.requisite.Requisite;
 
 import java.io.File;
@@ -42,6 +43,7 @@ public class Corgal {
         MinecraftForge.EVENT_BUS.register(new SoundListener());
         Requisite.getInstance().getEventBus().register(new HypixelUtils());
         ClientCommandHandler.instance.registerCommand(new CorgalCommand());
+        PatternHandler.initialize();
     }
 
 }

@@ -113,7 +113,7 @@ public class CorgalConfig extends Vigilant {
     @Property(
             type = PropertyType.SWITCH,
             name = "Auto GL",
-            category = "AutoGL",
+            category = "Chat",
             description = "Send a message 5 seconds before a Hypixel game starts."
     )
     public static boolean autoGL = false;
@@ -121,7 +121,7 @@ public class CorgalConfig extends Vigilant {
     @Property(
             type = PropertyType.SELECTOR,
             name = "Auto GL Phrase",
-            category = "AutoGL",
+            category = "Chat",
             description = "Choose what message is said.",
             options = {"glhf", "Good Luck", "GL", "Have a good game!", "gl", "Good luck!"}
     )
@@ -130,10 +130,18 @@ public class CorgalConfig extends Vigilant {
     @Property(
             type = PropertyType.SWITCH,
             name = "Anti-GL",
-            category = "AutoGL",
+            category = "Chat",
             description = "Remove all GL messages in chat."
     )
     public static boolean antiGL = false;
+
+    @Property(
+            type = PropertyType.SWITCH,
+            name = "Guild Join Welcomer",
+            category = "Chat",
+            description = "Send a welcome message when someone joins your guild."
+    )
+    public static boolean guildWelcome = false;
 
     public static CorgalConfig instance = new CorgalConfig();
 

@@ -9,12 +9,13 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import xyz.qalcyo.corgal.Corgal;
 import xyz.qalcyo.corgal.config.CorgalConfig;
 import xyz.qalcyo.corgal.utils.HypixelUtils;
+import xyz.qalcyo.corgal.utils.PatternHandler;
 import xyz.qalcyo.mango.Multithreading;
 import xyz.qalcyo.requisite.Requisite;
 import xyz.qalcyo.requisite.core.integration.hypixel.locraw.HypixelLocraw;
 
-import java.util.Arrays;
-import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * The listener for chat messages.
@@ -22,28 +23,6 @@ import java.util.List;
 public class ChatListener {
 
     private final int apiKeyMessageLength = "Your new API key is ".length();
-    private final List<String> gameEndList = Arrays.asList(
-            "Winner #1 (",
-            "Top Survivors",
-            "Winners - ",
-            "Winners: ",
-            "Winner: ",
-            "Winning Team: ",
-            " won the game!",
-            "Top Seeker: ",
-            "Last team standing!",
-            "1st Place: ",
-            "1st Killer - ",
-            "1st Place - ",
-            "Winner: ",
-            " - Damage Dealt - ",
-            "Winning Team -",
-            "1st - ",
-            " Duel - ",
-            "YOU LOSE!",
-            "Most Kills - ",
-            "Hearts Regenerated:"
-    );
     private boolean victoryDetected = false;
     private boolean glDetected = false;
     private static final String[] cancelGlMessages = {"glhf", "Good Luck", "GL", "Have a good game!", "gl", "Good luck!", "AutoGL By Sk1er"};
@@ -90,51 +69,60 @@ public class ChatListener {
                     return;
                 }
             }
-            if (CorgalConfig.autoGetGEXP || CorgalConfig.autoGetWinstreak) {
+            if (CorgalConfig.guildWelcome) {
+                Multithreading.runAsync(() -> {
+                    Pattern cached = PatternHandler.cache.getIfPresent("guildPlayerJoinPattern");
+                    if (cached != null) {
+                        Matcher matcher = cached.matcher(unformattedText);
+                        if (matcher.matches()) {
+                            Minecraft.getMinecraft().thePlayer.sendChatMessage("/gc Welcome to the guild, " + matcher.group("player") + "!");
+                        }
+                    }
+                });
+            }
+            if ((CorgalConfig.autoGetGEXP || CorgalConfig.autoGetWinstreak) && PatternHandler.gameEnd.size() != 0) {
                 if (!victoryDetected) { // prevent victories being detected twice
                     Multithreading.runAsync(() -> { //run this async as getting from the API normally would freeze minecraft
-                        if (unformattedText.startsWith(" ")) {
-                            for (String triggers : gameEndList) { // go through all the triggers, if the message contains one of them then start
-                                if (unformattedText.contains(triggers)) {
-                                    victoryDetected = true;
-                                    if (CorgalConfig.autoGetGEXP) {
-                                        if (CorgalConfig.gexpMode == 0) {
-                                            if (HypixelUtils.getGEXP()) {
-                                                Requisite.getInstance().getNotifications()
-                                                        .push(
-                                                                Corgal.NAME,
-                                                                "You currently have " + HypixelUtils.gexp + " daily guild EXP."
-                                                        );
-                                            } else {
-                                                Requisite.getInstance().getNotifications()
-                                                        .push(Corgal.NAME, "There was a problem trying to get your GEXP.");
-                                            }
-                                        } else {
-                                            if (HypixelUtils.getWeeklyGEXP()) {
-                                                Requisite.getInstance().getNotifications()
-                                                        .push(
-                                                                Corgal.NAME,
-                                                                "You currently have " + HypixelUtils.gexp + " weekly guild EXP."
-                                                        );
-                                            } else {
-                                                Requisite.getInstance().getNotifications()
-                                                        .push(Corgal.NAME, "There was a problem trying to get your GEXP.");
-                                            }
-                                        }
-                                    }
-                                    if (isSupportedMode(HypixelUtils.locraw) && CorgalConfig.autoGetWinstreak) {
-                                        if (HypixelUtils.getWinstreak()) {
-                                            Requisite.getInstance().getNotifications().push(
-                                                    Corgal.NAME,
-                                                    "You currently have a " + HypixelUtils.winstreak + " winstreak."
-                                            );
+                        for (Pattern triggers : PatternHandler.gameEnd) {
+                            if (triggers.matcher(unformattedText).matches()) {
+                                victoryDetected = true;
+                                if (CorgalConfig.autoGetGEXP) {
+                                    if (CorgalConfig.gexpMode == 0) {
+                                        if (HypixelUtils.getGEXP()) {
+                                            Requisite.getInstance().getNotifications()
+                                                    .push(
+                                                            Corgal.NAME,
+                                                            "You currently have " + HypixelUtils.gexp + " daily guild EXP."
+                                                    );
                                         } else {
                                             Requisite.getInstance().getNotifications()
-                                                    .push(Corgal.NAME, "There was a problem trying to get your winstreak.");
+                                                    .push(Corgal.NAME, "There was a problem trying to get your GEXP.");
+                                        }
+                                    } else {
+                                        if (HypixelUtils.getWeeklyGEXP()) {
+                                            Requisite.getInstance().getNotifications()
+                                                    .push(
+                                                            Corgal.NAME,
+                                                            "You currently have " + HypixelUtils.gexp + " weekly guild EXP."
+                                                    );
+                                        } else {
+                                            Requisite.getInstance().getNotifications()
+                                                    .push(Corgal.NAME, "There was a problem trying to get your GEXP.");
                                         }
                                     }
-                                    break;
                                 }
+                                if (isSupportedMode(HypixelUtils.locraw) && CorgalConfig.autoGetWinstreak) {
+                                    if (HypixelUtils.getWinstreak()) {
+                                        Requisite.getInstance().getNotifications().push(
+                                                Corgal.NAME,
+                                                "You currently have a " + HypixelUtils.winstreak + " winstreak."
+                                        );
+                                    } else {
+                                        Requisite.getInstance().getNotifications()
+                                                .push(Corgal.NAME, "There was a problem trying to get your winstreak.");
+                                    }
+                                }
+                                break;
                             }
                         }
                     });
